@@ -1,0 +1,136 @@
+---
+- name: Backup install packages
+  apt:
+    name: "{{ backup__default_packages }}"
+    update_cache: yes
+    state: present
+  when: backup__install
+
+- name: Create backup directory
+  file:
+    dest: "{{ backup__conf.local_dir }}"
+    state: directory
+    mode: 0700
+  when: backup__install
+
+- name: Create backup default parms file
+  template:
+    src: default_backup
+    dest: "/etc/default/backup"
+    mode: 0660
+    owner: root
+    group: root
+  when:
+    - backup__install
+    - backup__configure
+
+- name: Create backup_mysql file
+  template:
+    src: backup_mysql
+    dest: "/usr/local/bin/backup_mysql"
+    mode: 0770
+    owner: root
+    group: root
+  when:
+    - backup__install
+    - backup__configure
+    - backup__mysql
+
+- name: Create backup_mysql cron
+  cron:
+    name: "Backup MySQL"
+    cron_file: backup_mysql
+    state: present
+    hour: "3"
+    minute: "0"
+    user: root
+    job: /usr/local/bin/backup_mysql
+  when:
+    - backup__install
+    - backup__configure
+    - backup__mysql
+
+- name: Create backup_cleaner file
+  template:
+    src: backup_cleaner
+    dest: "/usr/local/bin/backup_cleaner"
+    mode: 0770
+    owner: root
+    group: root
+  when:
+    - backup__install
+    - backup__configure
+
+- name: Create backup_cleaner cron
+  cron:
+    name: "Backup cleaner"
+    cron_file: backup_cleaner
+    state: present
+    hour: "6"
+    minute: "0"
+    user: root
+    job: /usr/local/bin/backup_cleaner
+  when:
+    - backup__install
+    - backup__configure
+
+- name: Create backup_zones file
+  template:
+    src: backup_zones
+    dest: "/usr/local/bin/backup_zones"
+    mode: 0770
+    owner: root
+    group: root
+  when:
+    - backup__install
+    - backup__configure
+
+- name: Create backup_zones cron
+  cron:
+    name: "Backup zones"
+    cron_file: backup_zones
+    state: present
+    hour: "3"
+    minute: "0"
+    user: root
+    job: /usr/local/bin/backup_zones
+  when:
+    - backup__install
+    - backup__configure
+
+- name: Create backup_users file
+  template:
+    src: backup_users
+    dest: "/usr/local/bin/backup_users"
+    mode: 0770
+    owner: root
+    group: root
+  when:
+    - backup__install
+    - backup__configure
+
+- name: Create backup_users cron
+  cron:
+    name: "Backup users"
+    cron_file: backup_users
+    state: present
+    hour: "4"
+    minute: "0"
+    user: root
+    job: /usr/local/bin/backup_users
+  when:
+    - backup__install
+    - backup__configure
+
+# - name: Create mirroring file
+#   template:
+#     src: *****
+#     dest: "****"
+#     mode: 0770
+#     owner: root
+#     group: root
+#   when:
+#     - backup__install
+#     - backup__configure
+
+

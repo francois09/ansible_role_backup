@@ -1,0 +1,6 @@
+#
+# Specific parms
+#
+
+BACKUP_AGE="{% if backup__conf.retentions|default([]) is iterable %}{{ backup__conf.retentions|default([])|join(';') }}{% endif %}"
+BACKUP_ZONES="{% if backup__conf.zones|default([]) is iterable %}{{ backup__conf.zones|default([])| join(' ') }}{% endif %}"

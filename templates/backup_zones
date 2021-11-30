@@ -1,0 +1,26 @@
+#!/bin/bash
+# Fais un tgz des zones à sauvegarder
+
+# Quelques valeurs par défaut
+BACKUP_DIR="{{ backup__conf.local_dir }}"
+BACKUP_CONF_FILE="{{ backup__conf.local_conf }}"
+
+# Si un fichier de paramètres existe, alors on le source
+[ -e "$BACKUP_CONF_FILE" ] && . "$BACKUP_CONF_FILE"
+
+BACKUP_PREF=${BACKUP_DIR}/$(date +%Y-%m-%d)
+YESTERDAY_BACKUP_PREF=${BACKUP_DIR}/$(date -d "yesterday" +%Y-%m-%d)
+
+for z in ${BACKUP_ZONES}
+do
+  cd $(dirname $z)
+  /bin/tar jhcf ${BACKUP_PREF}-$(basename $z).tgz {% for xcl in backup__conf.exclude|default([]) %}--exclude "{{ xcl }}" {% endfor %}--ignore-failed-read ./$(basename $z) 2>/dev/null
+
+  # Puis on vérifie qu'il y a bien eu des changements...
+  # Le fichier est-il présent?
+  [ ! -f ${YESTERDAY_BACKUP_PREF}-$(basename $z).tgz ] && continue
+  YSum=$(md5sum ${YESTERDAY_BACKUP_PREF}-$(basename $z).tgz|sed -e 's/ .*//')
+  Sum=$(md5sum ${BACKUP_PREF}-$(basename $z).tgz|sed -e 's/ .*//')
+  # Et si c'est pareil, alors on efface hier
+  [ "$YSum" = "$Sum" ] && rm -f ${YESTERDAY_BACKUP_PREF}-$(basename $z).tgz
+done
