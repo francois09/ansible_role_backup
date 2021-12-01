@@ -24,6 +24,17 @@
     - backup__install
     - backup__configure
 
+- name: Create backup log rotate file
+  template:
+    src: logfile
+    dest: "/etc/logrotate.d/backup"
+    mode: 0664
+    owner: root
+    group: root
+  when:
+    - backup__install
+    - backup__configure
+
 - name: Create backup_mysql file
   template:
     src: backup_mysql
@@ -122,15 +133,30 @@
     - backup__install
     - backup__configure
 
-# - name: Create mirroring file
-#   template:
-#     src: *****
-#     dest: "****"
-#     mode: 0770
-#     owner: root
-#     group: root
-#   when:
-#     - backup__install
-#     - backup__configure
+- name: Create backup_mirror file
+  template:
+    src: backup_mirror
+    dest: "/usr/local/bin/backup_mirror"
+    mode: 0770
+    owner: root
+    group: root
+  when:
+    - backup__install
+    - backup__configure
+    - backup__mirror
+
+- name: Create backup_mirror cron
+  cron:
+    name: "Backup mirror"
+    cron_file: backup_mirror
+    state: present
+    hour: "8"
+    minute: "30"
+    user: root
+    job: /usr/local/bin/backup_mirror
+  when:
+    - backup__install
+    - backup__configure
+    - backup__mirror
 
 

@@ -23,12 +23,22 @@ backup__exclude:
   - "*administrator/backups/*"
   - "*/com_joomlapack/backup/*"
 
+backup__mirror: False
+backup__mirror_host: localhost
+backup__mirror_user: user
+backup__mirror_pass: pass
+
 backup__localdir: "/var/backup"
 backup__localconf: "/etc/default/backup"
+backup__logfile: "/var/log/backup.log"
 
 backup__conf:
+  logfile: "{{ backup__logfile }}"
   local_dir: "{{ backup__localdir }}"
   local_conf: "{{ backup__localconf }}"
   zones: "{{ backup__zones }}"
   retentions: "{{ backup__retentions }}"
   exclude: "{{ backup__exclude }}"
+  mirror_host: "{{ backup__mirror_host }}"
+  mirror_user: "{{ backup__mirror_user }}"
+  mirror_pass: "{{ backup__mirror_pass }}"
