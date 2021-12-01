@@ -1,0 +1,55 @@
+#!/bin/bash
+# Mirroring des backups
+#
+
+# Quelques valeurs par défaut
+BACKUP_DIR="{{ backup__conf.local_dir }}"
+BACKUP_CONF_FILE="{{ backup__conf.local_conf }}"
+
+LOGFILE=/var/log/mirror.log
+
+BACKUP_HOST="{{ backup__conf.mirror_host }}"
+BACKUP_USER="{{ backup__conf.mirror_user }}"
+BACKUP_PASS="{{ backup__conf.mirror_pass }}"
+
+# Si un fichier de paramètres existe, alors on le source
+[ -e "$BACKUP_CONF_FILE" ] && . "$BACKUP_CONF_FILE"
+
+# On regarde combien d'essais on doit faire:
+if [ $# -lt 2 ]
+then
+    tries=5
+else
+    tries=$2
+fi
+
+# Et ensuite quel répertoire on doit générer
+if [ $# -lt 1 ]
+then
+    rep=$(uname -n)
+else
+    rep=$1
+fi
+
+# On génère un décalage de départ (pour chacune des instances)
+DELAY=$((RANDOM / 5 ))
+echo "Demarrage le :" $(date) " pour " $(uname -n) >>${LOGFILE}
+echo "Délai de :" $(($DELAY / 60)) " minutes" >>${LOGFILE}
+sleep $DELAY
+
+# Puis on effectue la véritable sauvegarde
+lftp -e "mirror -R --delete-first ${BACKUP_DIR} /${rep};quit" -u ${BACKUP_USER},${BACKUP_PASS} $BACKUP_HOST >>${LOGFILE} 2>&1
+rc=$?
+
+# Si il y a eu une erreur:
+if [ $rc != 0 ]
+then
+    if [ $tries -gt 0 ]
+    then
+	echo $0 $rep $(($tries - 1)) | at now + 10 min >>${LOGFILE} 2>&1
+    else
+	echo "Errors during mirroring backup datas. Check ${LOGFILE} on " $(uname -n)
+	tail ${LOGFILE}
+	exit $rc
+    fi
+fi
