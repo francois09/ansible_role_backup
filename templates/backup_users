@@ -19,7 +19,7 @@ do
   z=${g/*:/}
 
   cd $(dirname $z)
-  /bin/tar jhcf ${BACKUP_PREF}-$n.tgz {% for xcl in backup__conf.exclude|default([]) %}--exclude "{{ xcl }}" {% endfor %}--ignore-failed-read ./$(basename $z) 2>{{ backup__conf.logfile }}
+  /bin/tar jhcf ${BACKUP_PREF}-$n.tgz {% for xcl in backup__conf.exclude|default([]) %}--exclude "{{ xcl }}" {% endfor %}--ignore-failed-read ./$(basename $z) 2>>{{ backup__conf.logfile }}
 
   # Puis on vérifie qu'il y a bien eu des changements...
   # Le fichier est-il présent?
