@@ -6,7 +6,7 @@
 BACKUP_DIR="{{ backup__conf.local_dir }}"
 BACKUP_CONF_FILE="{{ backup__conf.local_conf }}"
 
-LOGFILE=/var/log/mirror.log
+LOGFILE={{ backup__conf.logfile }}
 
 BACKUP_HOST="{{ backup__conf.mirror_host }}"
 BACKUP_USER="{{ backup__conf.mirror_user }}"
