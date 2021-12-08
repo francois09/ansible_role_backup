@@ -38,7 +38,7 @@ echo "Délai de :" $(($DELAY / 60)) " minutes" >>${LOGFILE}
 sleep $DELAY
 
 # Puis on effectue la véritable sauvegarde
-lftp -e "mirror -R --delete-first ${BACKUP_DIR} /${rep};quit" -u ${BACKUP_USER},${BACKUP_PASS} $BACKUP_HOST >>${LOGFILE} 2>&1
+lftp -e "{% if backup__mirror_range %}set ftp:port-range {{ backup__mirror_range }};{% endif %}mirror -R --delete-first ${BACKUP_DIR} /${rep};quit" -u ${BACKUP_USER},${BACKUP_PASS} $BACKUP_HOST >>${LOGFILE} 2>&1
 rc=$?
 
 # Si il y a eu une erreur:
