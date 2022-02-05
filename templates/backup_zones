@@ -8,8 +8,8 @@ BACKUP_CONF_FILE="{{ backup__conf.local_conf }}"
 # Si un fichier de paramètres existe, alors on le source
 [ -e "$BACKUP_CONF_FILE" ] && . "$BACKUP_CONF_FILE"
 
-BACKUP_PREF=${BACKUP_DIR}/$(date +%Y-%m-%d)
-YESTERDAY_BACKUP_PREF=${BACKUP_DIR}/$(date -d "yesterday" +%Y-%m-%d)
+BACKUP_PREF=${BACKUP_DIR}/$(date +%Y-%m-%d)-zones
+YESTERDAY_BACKUP_PREF=${BACKUP_DIR}/$(date -d "yesterday" +%Y-%m-%d)-zones
 
 for z in ${BACKUP_ZONES}
 do

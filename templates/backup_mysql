@@ -8,8 +8,8 @@ BACKUP_CONF_FILE="{{ backup__conf.local_conf }}"
 # Si un fichier de paramètres existe, alors on le source
 [ -e "$BACKUP_CONF_FILE" ] && . "$BACKUP_CONF_FILE"
 
-BACKUP_ON=${BACKUP_DIR}/$(date +%Y-%m-%d)
-YESTERDAY_BACKUP_ON=${BACKUP_DIR}/$(date -d "yesterday" +%Y-%m-%d)
+BACKUP_ON=${BACKUP_DIR}/$(date +%Y-%m-%d)-mysql
+YESTERDAY_BACKUP_ON=${BACKUP_DIR}/$(date -d "yesterday" +%Y-%m-%d)-mysql
 
 MYSQLDUMP=/usr/bin/mysqldump
 MYSQL=/usr/bin/mysql
@@ -21,18 +21,18 @@ do
     [[ "$dbase" =~ .*_schema ]] && continue
     if [ "$dbase" == "mysql" ]
     then
-	$MYSQLDUMP --opt --events --add-drop-database -r ${BACKUP_ON}-mysql-${dbase}.sql $dbase
+	$MYSQLDUMP --opt --events --add-drop-database -r ${BACKUP_ON}-${dbase}.sql $dbase
     else
-	$MYSQLDUMP --opt --add-drop-database -r ${BACKUP_ON}-mysql-${dbase}.sql $dbase
+	$MYSQLDUMP --opt --add-drop-database -r ${BACKUP_ON}-${dbase}.sql $dbase
     fi
-    gzip ${BACKUP_ON}-mysql-${dbase}.sql
-    # rm -f ${BACKUP_ON}-mysql-${dbase}.sql
+    gzip ${BACKUP_ON}-${dbase}.sql
+    # rm -f ${BACKUP_ON}-${dbase}.sql
 
     # Puis on vérifie qu'il y a bien eu des changements...
     # Le fichier est-il présent?
-    [ ! -f ${YESTERDAY_BACKUP_ON}-mysql-${dbase}.sql.tgz ] && continue
-    YSum=$(md5sum ${YESTERDAY_BACKUP_ON}-mysql-${dbase}.sql.tgz|sed -e 's/ .*//')
-    Sum=$(md5sum ${BACKUP_ON}-mysql-${dbase}.sql.tgz|sed -e 's/ .*//')
+    [ ! -f ${YESTERDAY_BACKUP_ON}-${dbase}.sql.tgz ] && continue
+    YSum=$(md5sum ${YESTERDAY_BACKUP_ON}-${dbase}.sql.tgz|sed -e 's/ .*//')
+    Sum=$(md5sum ${BACKUP_ON}-${dbase}.sql.tgz|sed -e 's/ .*//')
     # Et si c'est pareil, alors on efface hier
-    [ "$YSum" = "$Sum" ] && rm -f ${YESTERDAY_BACKUP_ON}-mysql-${dbase}.sql.tgz
+    [ "$YSum" = "$Sum" ] && rm -f ${YESTERDAY_BACKUP_ON}-${dbase}.sql.tgz
 done
