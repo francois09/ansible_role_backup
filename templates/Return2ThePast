@@ -1,0 +1,80 @@
+#!/bin/bash
+# Return2ThePast
+#
+
+R2TP_LABEL="R2TP"
+R2TP_DISK="/media/francois/"${R2TP_LABEL}
+R2TP_DIR="/media/francois/"${R2TP_LABEL}"/Backup"
+
+BASE_DIRS="/etc /usr/local /home /root /var/backup"
+
+RDIFF_OPTIONS="--exclude-sockets --exclude-device-files --exclude-fifos"
+
+if [ $# -lt 1 ]
+then
+cat >&2 <<EOF
+Usage: Return2ThePast <command> [file ...]
+
+commands are:
+  backup [file ...]
+  restore [file ...]
+  sysbackup (root only)
+  sysrestore (root only)
+  check [file ...]
+  clean [date ...] (ex: 3Y = 3 years, 10M = Ten month
+EOF
+  exit
+fi
+
+# On vérifie que le disque est bien là
+if (mount|grep -q ${R2TP_DISK})
+then
+    :
+else
+    echo "Return2ThePast disk is not present" >&2
+    exit
+fi
+
+#
+# Les commandes:
+#   backup [file ...]
+#   restore [file ...]
+#   sysbackup (root only)
+#   sysrestore (root only)
+#   check [file ...]
+#   clean [date ...]
+#
+
+case $1 in
+  sysbackup)
+    dpkg --get-selections > /etc/package-list
+    for b in $BASE_DIRS
+    do
+	mkdir -p ${R2TP_DIR}$b
+	rdiff-backup --tempdir ${R2TP_DISK} backup $RDIFF_OPTIONS $b ${R2TP_DIR}$b
+    done
+    ;;
+  clean)
+    for b in $BASE_DIRS
+    do
+      rdiff-backup --force remove increments --older-than $2 ${R2TP_DIR}$b
+    done
+    ;;
+  backup|*restore)
+    echo "Don't know how to backup/restore/sysrestore files, now" >&2
+    ;;
+  check)
+    echo "Don't know how to check files, now" >&2
+    ;;
+  infos)
+    shift
+    for file in $@
+    do
+	echo "Checking file " $file >> /tmp/R2TP.log
+	echo rdiff-backup $RDIFF_OPTIONS --compare $file ${R2TP_DIR}$file >> /tmp/R2TP.log
+    done
+    ;;
+esac
+
+exit 0
+
