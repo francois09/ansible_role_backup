@@ -145,6 +145,18 @@
     - backup__configure
     - backup__mirror
 
+- name: Create Return2ThePast file
+  template:
+    src: Return2ThePast
+    dest: "/usr/local/bin/Return2ThePast"
+    mode: 0770
+    owner: root
+    group: root
+  when:
+    - backup__install
+    - backup__configure
+    - backup__time_machine
+
 - name: Create backup_mirror cron
   cron:
     name: "Backup mirror"
