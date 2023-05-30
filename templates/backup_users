@@ -4,6 +4,7 @@
 # Quelques valeurs par défaut
 BACKUP_DIR="{{ backup__conf.local_dir }}"
 BACKUP_CONF_FILE="{{ backup__conf.local_conf }}"
+BACKUP_CYPHER="{{ backup__conf.file_cypher }}"
 
 # Si un fichier de paramètres existe, alors on le source
 [ -e "$BACKUP_CONF_FILE" ] && . "$BACKUP_CONF_FILE"
@@ -19,13 +20,18 @@ do
   z=${g/*:/}
 
   cd $(dirname $z)
-  /bin/tar jhcf ${BACKUP_PREF}-$n.tgz {% for xcl in backup__conf.exclude|default([]) %}--exclude "{{ xcl }}" {% endfor %}--ignore-failed-read ./$(basename $z) 2>>{{ backup__conf.logfile }}
+  /bin/tar jhcf ${BACKUP_PREF}-$n.tgz {% for xcl in backup__conf.exclude|default([]) %}--exclude "{{ xcl }}" {% endfor %}--ignore-failed-read --one-file-system ./$(basename $z) 2>>{{ backup__conf.logfile }}
+
+  # Ensuite, on va chiffrer le résultat
+  gpg --batch --output ${BACKUP_PREF}-$n.tgz.gpg --passphrase "$BACKUP_CYPHER" --symmetric ${BACKUP_PREF}-$n.tgz
+  # Et supprimer la version non chiffrée
+  rm -f ${BACKUP_PREF}-$n.tgz
 
   # Puis on vérifie qu'il y a bien eu des changements...
   # Le fichier est-il présent?
-  [ ! -f ${YESTERDAY_BACKUP_PREF}-$n.tgz ] && continue
-  YSum=$(md5sum ${YESTERDAY_BACKUP_PREF}-$n.tgz|sed -e 's/ .*//')
-  Sum=$(md5sum ${BACKUP_PREF}-$n.tgz|sed -e 's/ .*//')
+  [ ! -f ${YESTERDAY_BACKUP_PREF}-$n.tgz.gpg ] && continue
+  YSum=$(md5sum ${YESTERDAY_BACKUP_PREF}-$n.tgz.gpg|sed -e 's/ .*//')
+  Sum=$(md5sum ${BACKUP_PREF}-$n.tgz.gpg|sed -e 's/ .*//')
   # Et si c'est pareil, alors on efface hier
-  [ "$YSum" = "$Sum" ] && rm -f ${YESTERDAY_BACKUP_PREF}-$n.tgz
+  [ "$YSum" = "$Sum" ] && rm -f ${YESTERDAY_BACKUP_PREF}-$n.tgz.gpg
 done

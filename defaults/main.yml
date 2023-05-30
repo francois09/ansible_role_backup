@@ -44,3 +44,4 @@ backup__conf:
   mirror_host: "{{ backup__mirror_host }}"
   mirror_user: "{{ backup__mirror_user }}"
   mirror_pass: "{{ backup__mirror_pass }}"
+  file_cypher: "{{ backup__file_cypher_pass }}"
