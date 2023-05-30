@@ -28,11 +28,16 @@ do
     gzip ${BACKUP_ON}-${dbase}.sql
     # rm -f ${BACKUP_ON}-${dbase}.sql
 
+    # Ensuite, on va chiffrer le résultat
+    gpg --batch --output ${BACKUP_ON}-${dbase}.sql.tgz.gpg --passphrase "$BACKUP_CYPHER" --symmetric ${BACKUP_ON}-${dbase}.sql.tgz
+    # Et supprimer la version non chiffrée
+    rm -f ${BACKUP_ON}-${dbase}.sql.tgz
+
     # Puis on vérifie qu'il y a bien eu des changements...
     # Le fichier est-il présent?
-    [ ! -f ${YESTERDAY_BACKUP_ON}-${dbase}.sql.tgz ] && continue
-    YSum=$(md5sum ${YESTERDAY_BACKUP_ON}-${dbase}.sql.tgz|sed -e 's/ .*//')
-    Sum=$(md5sum ${BACKUP_ON}-${dbase}.sql.tgz|sed -e 's/ .*//')
+    [ ! -f ${YESTERDAY_BACKUP_ON}-${dbase}.sql.tgz.gpg ] && continue
+    YSum=$(md5sum ${YESTERDAY_BACKUP_ON}-${dbase}.sql.tgz.gpg|sed -e 's/ .*//')
+    Sum=$(md5sum ${BACKUP_ON}-${dbase}.sql.tgz.gpg|sed -e 's/ .*//')
     # Et si c'est pareil, alors on efface hier
-    [ "$YSum" = "$Sum" ] && rm -f ${YESTERDAY_BACKUP_ON}-${dbase}.sql.tgz
+    [ "$YSum" = "$Sum" ] && rm -f ${YESTERDAY_BACKUP_ON}-${dbase}.sql.tgz.gpg
 done
