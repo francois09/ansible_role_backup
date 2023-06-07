@@ -4,6 +4,7 @@
 # Quelques valeurs par défaut
 BACKUP_DIR="{{ backup__conf.local_dir }}"
 BACKUP_CONF_FILE="{{ backup__conf.local_conf }}"
+BACKUP_CYPHER="{{ backup__conf.file_cypher }}"
 
 # Si un fichier de paramètres existe, alors on le source
 [ -e "$BACKUP_CONF_FILE" ] && . "$BACKUP_CONF_FILE"
