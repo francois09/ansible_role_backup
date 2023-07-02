@@ -8,7 +8,8 @@ R2TP_DIR="/media/francois/"${R2TP_LABEL}"/Backup"
 
 BASE_DIRS="/etc /usr/local /home /root /var/backup"
 
-RDIFF_OPTIONS="--exclude-sockets --exclude-device-files --exclude-fifos"
+RDIFF_OPTIONS="--verbosity 2 --tempdir ${R2TP_DISK}"
+RDIFF_BACKUP_OPTIONS="--exclude **/mozilla/.cache --exclude-sockets --exclude-device-files --exclude-fifos"
 
 if [ $# -lt 1 ]
 then
@@ -51,7 +52,9 @@ case $1 in
     for b in $BASE_DIRS
     do
 	mkdir -p ${R2TP_DIR}$b
-	rdiff-backup --tempdir ${R2TP_DISK} backup $RDIFF_OPTIONS $b ${R2TP_DIR}$b
+	echo -n "Backup of $b ..."
+	rdiff-backup $RDIFF_OPTIONS backup $RDIFF_BACKUP_OPTIONS $b ${R2TP_DIR}$b
+	echo "Done"
     done
     ;;
   clean)
