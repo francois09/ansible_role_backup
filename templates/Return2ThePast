@@ -9,7 +9,7 @@ R2TP_DIR="/media/francois/"${R2TP_LABEL}"/Backup"
 BASE_DIRS="/etc /usr/local /home /root /var/backup"
 
 RDIFF_OPTIONS="--verbosity 2 --tempdir ${R2TP_DISK}"
-RDIFF_BACKUP_OPTIONS="--exclude **/mozilla/.cache --exclude-sockets --exclude-device-files --exclude-fifos"
+RDIFF_BACKUP_OPTIONS="--exclude **/.cache --exclude-sockets --exclude-device-files --exclude-fifos"
 
 if [ $# -lt 1 ]
 then
