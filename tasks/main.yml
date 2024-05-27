@@ -6,7 +6,7 @@
     state: present
   when:
     - backup__install
-    - backup__time_machine is undefined
+    - not backup__time_machine
 
 - name: Create backup directory
   file:
@@ -15,7 +15,7 @@
     mode: 0700
   when:
     - backup__install
-    - backup__time_machine is undefined
+    - not backup__time_machine
 
 - name: Create backup default parms file
   template:
@@ -27,7 +27,7 @@
   when:
     - backup__install
     - backup__configure
-    - backup__time_machine is undefined
+    - not backup__time_machine
 
 - name: Create backup log rotate file
   template:
@@ -39,7 +39,7 @@
   when:
     - backup__install
     - backup__configure
-    - backup__time_machine is undefined
+    - not backup__time_machine
 
 - name: Create backup_mysql file
   template:
@@ -52,7 +52,7 @@
     - backup__install
     - backup__configure
     - backup__mysql
-    - backup__time_machine is undefined
+    - not backup__time_machine
 
 - name: Create backup_mysql cron
   cron:
@@ -67,7 +67,7 @@
     - backup__install
     - backup__configure
     - backup__mysql
-    - backup__time_machine is undefined
+    - not backup__time_machine
 
 - name: Create backup_cleaner file
   template:
@@ -79,7 +79,7 @@
   when:
     - backup__install
     - backup__configure
-    - backup__time_machine is undefined
+    - not backup__time_machine
 
 - name: Create backup_cleaner cron
   cron:
@@ -93,7 +93,7 @@
   when:
     - backup__install
     - backup__configure
-    - backup__time_machine is undefined
+    - not backup__time_machine
 
 - name: Create backup_zones file
   template:
@@ -105,7 +105,7 @@
   when:
     - backup__install
     - backup__configure
-    - backup__time_machine is undefined
+    - not backup__time_machine
 
 - name: Create backup_zones cron
   cron:
@@ -119,7 +119,7 @@
   when:
     - backup__install
     - backup__configure
-    - backup__time_machine is undefined
+    - not backup__time_machine
 
 - name: Create backup_users file
   template:
@@ -131,7 +131,7 @@
   when:
     - backup__install
     - backup__configure
-    - backup__time_machine is undefined
+    - not backup__time_machine
 
 - name: Create backup_users cron
   cron:
@@ -145,7 +145,7 @@
   when:
     - backup__install
     - backup__configure
-    - backup__time_machine is undefined
+    - not backup__time_machine
 
 - name: Create backup_mirror file
   template:
@@ -169,7 +169,7 @@
   when:
     - backup__install
     - backup__configure
-    - backup__time_machine is defined and backup__time_machine
+    - backup__time_machine
 
 - name: Create backup_mirror cron
   cron:
@@ -184,6 +184,4 @@
     - backup__install
     - backup__configure
     - backup__mirror
-    - backup__time_machine is undefined
-
-
+    - not backup__time_machine
