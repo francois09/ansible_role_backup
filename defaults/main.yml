@@ -19,6 +19,11 @@ backup__retentions:
   - "mysql:2W"
   - "users:2W"
 
+backup__cleaner_hour: "8"
+backup__cleaner_min: "0"
+backup__mirror_hour: "8"
+backup__mirror_min: "30"
+
 backup__exclude:
   - "*nologin*"
   - "*fonts/*"

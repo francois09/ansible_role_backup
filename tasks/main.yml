@@ -86,8 +86,8 @@
     name: "Backup cleaner"
     cron_file: backup_cleaner
     state: present
-    hour: "6"
-    minute: "0"
+    hour: "{{ backup__cleaner_hour }}"
+    minute: "{{ backup__cleaner_min }}"
     user: root
     job: /usr/local/bin/backup_cleaner
   when:
@@ -176,8 +176,8 @@
     name: "Backup mirror"
     cron_file: backup_mirror
     state: present
-    hour: "8"
-    minute: "30"
+    hour: "{{ backup__mirror_hour }}"
+    minute: "{{ backup__mirror_min }}"
     user: root
     job: /usr/local/bin/backup_mirror
   when:
