@@ -27,6 +27,10 @@ Role Variables
 * `backup__mirror_user` FTP User
 * `backup__mirror_pass` FTP Password
 
+* `backup__mirror_hour`, `backup__mirror_min` for mirror cron time
+* `backup__cleaner_hour`, `backup__cleaner_min` for cleaner cron time
+
+
 Dependencies
 ------------
 
