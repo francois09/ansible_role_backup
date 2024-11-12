@@ -6,7 +6,8 @@ backup__configure: False
 backup__time_machine: False
 
 # defaults file for backup
-backup__default_packages: []
+backup__default_packages:
+  - at
 
 backup__mysql: False
 
