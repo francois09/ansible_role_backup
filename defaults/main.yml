@@ -4,10 +4,14 @@ backup__install: False
 backup__configure: False
 
 backup__time_machine: False
+backup__restic: False
 
 # defaults file for backup
 backup__default_packages:
   - at
+
+backup__restic_default_packages:
+  - restic
 
 backup__mysql: False
 
@@ -35,6 +39,11 @@ backup__mirror: False
 backup__mirror_host: localhost
 backup__mirror_user: user
 backup__mirror_pass: pass
+backup__restic_host: localhost
+backup__restic_user: user
+backup__restic_port: 23
+backup__restic_cert: id_rsa
+backup__file_cypher_pass: "cypherpass"
 
 backup__localdir: "/var/backup"
 backup__localconf: "/etc/default/backup"
@@ -47,6 +56,10 @@ backup__conf:
   zones: "{{ backup__zones }}"
   retentions: "{{ backup__retentions }}"
   exclude: "{{ backup__exclude }}"
+  restic_host: "{{ backup__restic_host }}"
+  restic_user: "{{ backup__restic_user }}"
+  restic_port: "{{ backup__restic_port }}"
+  restic_cert: "{{ backup__restic_cert }}"
   mirror_host: "{{ backup__mirror_host }}"
   mirror_user: "{{ backup__mirror_user }}"
   mirror_pass: "{{ backup__mirror_pass }}"

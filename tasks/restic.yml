@@ -1,0 +1,30 @@
+---
+- name: Restic install packages
+  apt:
+    name: "{{ backup__restic_default_packages }}"
+    update_cache: yes
+    state: present
+  when:
+    - backup__install
+
+- name: Create ssh_config file
+  template:
+    src: ssh_config
+    dest: "/root/.ssh/config"
+    mode: 0644
+    owner: root
+    group: root
+  when:
+    - backup__install
+    - backup__configure
+
+- name: Create restic password file
+  template:
+    src: restic_repo_password
+    dest: "/root/.restic_repo_password"
+    mode: 0600
+    owner: root
+    group: root
+  when:
+    - backup__install
+    - backup__configure

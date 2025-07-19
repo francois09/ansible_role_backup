@@ -2,11 +2,17 @@
 # Return2ThePast
 #
 
+# Quelques valeurs par défaut
+BACKUP_DIR="{{ backup__conf.local_dir }}"
+BACKUP_CONF_FILE="{{ backup__conf.local_conf }}"
+BACKUP_CYPHER="{{ backup__conf.file_cypher }}"
+
+# Si un fichier de paramètres existe, alors on le source
+[ -e "$BACKUP_CONF_FILE" ] && . "$BACKUP_CONF_FILE"
+
 R2TP_LABEL="R2TP"
 R2TP_DISK="/media/francois/"${R2TP_LABEL}
 R2TP_DIR="/media/francois/"${R2TP_LABEL}"/Backup"
-
-BASE_DIRS="/etc /usr/local /home /root /var/backup"
 
 RDIFF_OPTIONS="--verbosity 2 --tempdir ${R2TP_DISK}"
 RDIFF_BACKUP_OPTIONS="--exclude **/.cache --exclude-sockets --exclude-device-files --exclude-fifos"
@@ -49,7 +55,7 @@ fi
 case $1 in
   sysbackup)
     dpkg --get-selections > /etc/package-list
-    for b in $BASE_DIRS
+    for b in $BACKUP_ZONES
     do
 	mkdir -p ${R2TP_DIR}$b
 	echo -n "Backup of $b ..."
@@ -58,9 +64,25 @@ case $1 in
     done
     ;;
   clean)
-    for b in $BASE_DIRS
+    for b in $BACKUP_ZONES
     do
-      rdiff-backup --force remove increments --older-than $2 ${R2TP_DIR}$b
+	# Find the backup duration
+	for group in $(echo $BACKUP_AGE|sed -e 's/\;/ /g')
+	do
+	    # On extrait le répertoire et l'âge
+	    AGE=${group/*:/}
+	    REP=${group/:*/}
+	    if [[ "$REP" == "*" ]]
+	    then
+		DURATION=$AGE
+	    fi
+	    if [[ "$b" =~ "$REP" ]]
+	    then
+		DURATION=$AGE
+	    fi
+	done
+	[ -z "$DURATION" ] && DURATION="2Y"
+	rdiff-backup --force remove increments --older-than $DURATION ${R2TP_DIR}$b
     done
     ;;
   backup|*restore)

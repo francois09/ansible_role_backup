@@ -1,0 +1,22 @@
+#!/bin/bash
+# Fais un tgz des zones à sauvegarder
+
+# Quelques valeurs par défaut
+BACKUP_DIR="{{ backup__conf.local_dir }}"
+BACKUP_REPO="sftp:{{ backup__conf.restic_host }}:/home/$(hostname -s).$(hostname -d)/zones"
+BACKUP_CONF_FILE="{{ backup__conf.local_conf }}"
+BACKUP_CYPHER="{{ backup__conf.file_cypher }}"
+
+# Si un fichier de paramètres existe, alors on le source
+[ -e "$BACKUP_CONF_FILE" ] && . "$BACKUP_CONF_FILE"
+
+for z in ${BACKUP_ZONES}
+do
+  real_z=$(echo $z|sed -e 's/\///;s/\//-/g')
+
+  # Check/create repository
+  restic -r $BACKUP_REPO/$real_z -p /root/.restic_repo_password cat config >/dev/null 2>&1 || restic -r $BACKUP_REPO/$real_z -p /root/.restic_repo_password init
+
+  # Puis sauvegarder ça avec restic
+  restic -r $BACKUP_REPO/$real_z -p /root/.restic_repo_password backup {% for xcl in backup__conf.exclude|default([]) %}--exclude="{{ xcl }}" {% endfor %} --one-file-system $z
+done

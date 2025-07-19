@@ -9,6 +9,8 @@ BACKUP_CYPHER="{{ backup__conf.file_cypher }}"
 # Si un fichier de paramètres existe, alors on le source
 [ -e "$BACKUP_CONF_FILE" ] && . "$BACKUP_CONF_FILE"
 
+LOGFILE={{ backup__conf.logfile }}
+
 BACKUP_ON=${BACKUP_DIR}/$(date +%Y-%m-%d)-mysql
 YESTERDAY_BACKUP_ON=${BACKUP_DIR}/$(date -d "yesterday" +%Y-%m-%d)-mysql
 
@@ -22,9 +24,9 @@ do
     [[ "$dbase" =~ .*_schema ]] && continue
     if [ "$dbase" == "mysql" ]
     then
-	$MYSQLDUMP --opt --events --add-drop-database -r ${BACKUP_ON}-${dbase}.sql $dbase
+	$MYSQLDUMP --opt --events --add-drop-database -r ${BACKUP_ON}-${dbase}.sql $dbase >> $LOGFILE 2>&1
     else
-	$MYSQLDUMP --opt --add-drop-database -r ${BACKUP_ON}-${dbase}.sql $dbase
+	$MYSQLDUMP --opt --add-drop-database -r ${BACKUP_ON}-${dbase}.sql $dbase >> $LOGFILE 2>&1
     fi
     gzip ${BACKUP_ON}-${dbase}.sql
     # rm -f ${BACKUP_ON}-${dbase}.sql
