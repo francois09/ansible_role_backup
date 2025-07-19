@@ -1,0 +1,11 @@
+---
+- name: Create Return2ThePast file
+  template:
+    src: Return2ThePast
+    dest: "/usr/local/bin/Return2ThePast"
+    mode: 0770
+    owner: root
+    group: root
+  when:
+    - backup__install
+    - backup__configure

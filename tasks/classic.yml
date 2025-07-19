@@ -1,0 +1,27 @@
+---
+- name: Backup install packages
+  apt:
+    name: "{{ backup__default_packages }}"
+    update_cache: yes
+    state: present
+  when:
+    - backup__install
+
+- name: Create backup directory
+  file:
+    dest: "{{ backup__conf.local_dir }}"
+    state: directory
+    mode: 0700
+  when:
+    - backup__install
+
+- name: Create backup_cleaner file
+  template:
+    src: backup_cleaner
+    dest: "/usr/local/bin/backup_cleaner"
+    mode: 0770
+    owner: root
+    group: root
+  when:
+    - backup__install
+    - backup__configure

@@ -1,21 +1,19 @@
 ---
-- name: Backup install packages
-  apt:
-    name: "{{ backup__default_packages }}"
-    update_cache: yes
-    state: present
+- name: Use classic old-school backup
+  include_tasks: classic.yml
   when:
-    - backup__install
     - not backup__time_machine
+    - not backup__restic
 
-- name: Create backup directory
-  file:
-    dest: "{{ backup__conf.local_dir }}"
-    state: directory
-    mode: 0700
+- name: Use Return2ThePast backup
+  include_tasks: return2thepast.yml
   when:
-    - backup__install
-    - not backup__time_machine
+    - backup__time_machine
+
+- name: Use restic backup snapshots
+  include_tasks: restic.yml
+  when:
+    - backup__restic
 
 - name: Create backup default parms file
   template:
@@ -27,7 +25,6 @@
   when:
     - backup__install
     - backup__configure
-    - not backup__time_machine
 
 - name: Create backup log rotate file
   template:
@@ -39,11 +36,21 @@
   when:
     - backup__install
     - backup__configure
-    - not backup__time_machine
+
+- name: Create backup_zones file
+  template:
+    src: "backup_zones{% if backup__restic %}_restic{% endif %}"
+    dest: "/usr/local/bin/backup_zones"
+    mode: 0770
+    owner: root
+    group: root
+  when:
+    - backup__install
+    - backup__configure
 
 - name: Create backup_mysql file
   template:
-    src: backup_mysql
+    src: "backup_mysql{% if backup__restic %}_restic{% endif %}"
     dest: "/usr/local/bin/backup_mysql"
     mode: 0770
     owner: root
@@ -52,7 +59,17 @@
     - backup__install
     - backup__configure
     - backup__mysql
-    - not backup__time_machine
+
+- name: Create backup_users file
+  template:
+    src: "backup_users{% if backup__restic %}_restic{% endif %}"
+    dest: "/usr/local/bin/backup_users"
+    mode: 0770
+    owner: root
+    group: root
+  when:
+    - backup__install
+    - backup__configure
 
 - name: Create backup_mysql cron
   cron:
@@ -67,19 +84,6 @@
     - backup__install
     - backup__configure
     - backup__mysql
-    - not backup__time_machine
-
-- name: Create backup_cleaner file
-  template:
-    src: backup_cleaner
-    dest: "/usr/local/bin/backup_cleaner"
-    mode: 0770
-    owner: root
-    group: root
-  when:
-    - backup__install
-    - backup__configure
-    - not backup__time_machine
 
 - name: Create backup_cleaner cron
   cron:
@@ -93,19 +97,6 @@
   when:
     - backup__install
     - backup__configure
-    - not backup__time_machine
-
-- name: Create backup_zones file
-  template:
-    src: backup_zones
-    dest: "/usr/local/bin/backup_zones"
-    mode: 0770
-    owner: root
-    group: root
-  when:
-    - backup__install
-    - backup__configure
-    - not backup__time_machine
 
 - name: Create backup_zones cron
   cron:
@@ -119,19 +110,6 @@
   when:
     - backup__install
     - backup__configure
-    - not backup__time_machine
-
-- name: Create backup_users file
-  template:
-    src: backup_users
-    dest: "/usr/local/bin/backup_users"
-    mode: 0770
-    owner: root
-    group: root
-  when:
-    - backup__install
-    - backup__configure
-    - not backup__time_machine
 
 - name: Create backup_users cron
   cron:
@@ -145,7 +123,6 @@
   when:
     - backup__install
     - backup__configure
-    - not backup__time_machine
 
 - name: Create backup_mirror file
   template:
@@ -159,23 +136,23 @@
     - backup__configure
     - backup__mirror
 
-- name: Create Return2ThePast file
-  template:
-    src: Return2ThePast
-    dest: "/usr/local/bin/Return2ThePast"
-    mode: 0770
-    owner: root
-    group: root
+- name: Delete backup_mirror file
+  file:
+    path: "/usr/local/bin/backup_mirror"
+    state: absent
   when:
     - backup__install
     - backup__configure
-    - backup__time_machine
+    - not backup__mirror
 
-- name: Create backup_mirror cron
+##
+## Need to remove this cron file when mirror is false
+##
+- name: Create or remove backup_mirror cron
   cron:
     name: "Backup mirror"
     cron_file: backup_mirror
-    state: present
+    state: "{% if backup__mirror %}present{% else %}absent{% endif %}"
     hour: "{{ backup__mirror_hour }}"
     minute: "{{ backup__mirror_min }}"
     user: root
@@ -183,5 +160,3 @@
   when:
     - backup__install
     - backup__configure
-    - backup__mirror
-    - not backup__time_machine

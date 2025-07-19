@@ -1,0 +1,33 @@
+#!/bin/bash
+# Databases backup
+set -o pipefail
+
+# Quelques valeurs par défaut
+BACKUP_DIR="{{ backup__conf.local_dir }}"
+BACKUP_REPO="sftp:{{ backup__conf.restic_host }}:/home/$(hostname -s).$(hostname -d)/mysql"
+BACKUP_CONF_FILE="{{ backup__conf.local_conf }}"
+BACKUP_CYPHER="{{ backup__conf.file_cypher }}"
+
+# Si un fichier de paramètres existe, alors on le source
+[ -e "$BACKUP_CONF_FILE" ] && . "$BACKUP_CONF_FILE"
+
+LOGFILE={{ backup__conf.logfile }}
+
+# Check/create repository
+restic -r $BACKUP_REPO -p /root/.restic_repo_password cat config >/dev/null 2>&1 || restic -r $BACKUP_REPO -p /root/.restic_repo_password init >>$LOGFILE 2>&1
+
+MYSQLDUMP=/usr/bin/mysqldump
+MYSQL=/usr/bin/mysql
+
+DATABASES=$($MYSQL --user=root -r -B -e "show databases"|tail -n +2)
+
+for dbase in $DATABASES
+do
+    [[ "$dbase" =~ .*_schema ]] && continue
+    if [ "$dbase" == "mysql" ]
+    then
+	$MYSQLDUMP --opt --events --add-drop-database $dbase | restic -r $BACKUP_REPO -p /root/.restic_repo_password backup --stdin --stdin-filename ${dbase}.sql >>$LOGFILE 2>&1
+    else
+        $MYSQLDUMP --opt --add-drop-database $dbase | restic -r $BACKUP_REPO -p /root/.restic_repo_password backup --stdin-filename ${dbase}.sql --stdin >>$LOGFILE 2>&1
+    fi
+done

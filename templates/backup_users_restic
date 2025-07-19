@@ -1,0 +1,29 @@
+#!/bin/bash
+# Fais un tgz des zones à sauvegarder
+
+# Quelques valeurs par défaut
+BACKUP_DIR="{{ backup__conf.local_dir }}"
+BACKUP_REPO="sftp:{{ backup__conf.restic_host }}:/home/$(hostname -s).$(hostname -d)/users"
+BACKUP_CONF_FILE="{{ backup__conf.local_conf }}"
+BACKUP_CYPHER="{{ backup__conf.file_cypher }}"
+
+# Si un fichier de paramètres existe, alors on le source
+[ -e "$BACKUP_CONF_FILE" ] && . "$BACKUP_CONF_FILE"
+
+# Check/create repository
+restic -r $BACKUP_REPO -p /root/.restic_repo_password cat config >/dev/null 2>&1 || restic -r $BACKUP_REPO -p /root/.restic_repo_password init
+
+DIR_LIST=$(grep -v 'pvs-backup' /etc/passwd|awk -F':' '{if (($3 >= 1000) && ($3 < 65534)) print $1":"$6;}')
+
+for g in ${DIR_LIST}
+do
+  n=${g/:*/}
+  z=${g/*:/}
+
+  # cd $(dirname $z)
+  # /bin/tar jhcf ${BACKUP_DIR}/$n.tgz {% for xcl in backup__conf.exclude|default([]) %}--exclude "{{ xcl }}" {% endfor %}--ignore-failed-read --one-file-system ./$(basename $z) 2>>{{ backup__conf.logfile }}
+
+  # Puis sauvegarder ça avec restic
+  restic -r $BACKUP_REPO -p /root/.restic_repo_password backup {% for xcl in backup__conf.exclude|default([]) %}--exclude="{{ xcl }}" {% endfor %} --one-file-system $z
+
+done
