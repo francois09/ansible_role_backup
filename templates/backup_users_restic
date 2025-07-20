@@ -10,8 +10,12 @@ BACKUP_CYPHER="{{ backup__conf.file_cypher }}"
 # Si un fichier de paramètres existe, alors on le source
 [ -e "$BACKUP_CONF_FILE" ] && . "$BACKUP_CONF_FILE"
 
+LOGFILE={{ backup__conf.logfile }}
+
+echo "*** Demarrage le :" $(date) " pour " $(uname -n) >>${LOGFILE}
+
 # Check/create repository
-restic -r $BACKUP_REPO -p /root/.restic_repo_password cat config >/dev/null 2>&1 || restic -r $BACKUP_REPO -p /root/.restic_repo_password init
+restic -r $BACKUP_REPO -p /root/.restic_repo_password cat config >/dev/null 2>&1 || restic -r $BACKUP_REPO -p /root/.restic_repo_password init >>$LOGFILE
 
 DIR_LIST=$(grep -v 'pvs-backup' /etc/passwd|awk -F':' '{if (($3 >= 1000) && ($3 < 65534)) print $1":"$6;}')
 
@@ -24,6 +28,8 @@ do
   # /bin/tar jhcf ${BACKUP_DIR}/$n.tgz {% for xcl in backup__conf.exclude|default([]) %}--exclude "{{ xcl }}" {% endfor %}--ignore-failed-read --one-file-system ./$(basename $z) 2>>{{ backup__conf.logfile }}
 
   # Puis sauvegarder ça avec restic
-  restic -r $BACKUP_REPO -p /root/.restic_repo_password backup {% for xcl in backup__conf.exclude|default([]) %}--exclude="{{ xcl }}" {% endfor %} --one-file-system $z
+  restic -r $BACKUP_REPO -p /root/.restic_repo_password backup {% for xcl in backup__conf.exclude|default([]) %}--exclude="{{ xcl }}" {% endfor %} --one-file-system $z >>$LOGFILE
 
 done
+echo "*** Fin le :" $(date) " pour " $(uname -n) >>${LOGFILE}
+echo >>${LOGFILE}

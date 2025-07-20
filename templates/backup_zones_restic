@@ -10,13 +10,19 @@ BACKUP_CYPHER="{{ backup__conf.file_cypher }}"
 # Si un fichier de paramètres existe, alors on le source
 [ -e "$BACKUP_CONF_FILE" ] && . "$BACKUP_CONF_FILE"
 
+LOGFILE={{ backup__conf.logfile }}
+
+echo "*** Demarrage le :" $(date) " pour " $(uname -n) >>${LOGFILE}
+
 for z in ${BACKUP_ZONES}
 do
   real_z=$(echo $z|sed -e 's/\///;s/\//-/g')
 
   # Check/create repository
-  restic -r $BACKUP_REPO/$real_z -p /root/.restic_repo_password cat config >/dev/null 2>&1 || restic -r $BACKUP_REPO/$real_z -p /root/.restic_repo_password init
+  restic -r $BACKUP_REPO/$real_z -p /root/.restic_repo_password cat config >/dev/null 2>&1 || restic -r $BACKUP_REPO/$real_z -p /root/.restic_repo_password init >>$LOGFILE
 
   # Puis sauvegarder ça avec restic
-  restic -r $BACKUP_REPO/$real_z -p /root/.restic_repo_password backup {% for xcl in backup__conf.exclude|default([]) %}--exclude="{{ xcl }}" {% endfor %} --one-file-system $z
+  restic -r $BACKUP_REPO/$real_z -p /root/.restic_repo_password backup {% for xcl in backup__conf.exclude|default([]) %}--exclude="{{ xcl }}" {% endfor %} --one-file-system $z >>$LOGFILE
 done
+echo "*** Fin le :" $(date) " pour " $(uname -n) >>${LOGFILE}
+echo >>${LOGFILE}

@@ -13,8 +13,10 @@ BACKUP_CYPHER="{{ backup__conf.file_cypher }}"
 
 LOGFILE={{ backup__conf.logfile }}
 
+echo "*** Demarrage le :" $(date) " pour " $(uname -n) >>${LOGFILE}
+
 # Check/create repository
-restic -r $BACKUP_REPO -p /root/.restic_repo_password cat config >/dev/null 2>&1 || restic -r $BACKUP_REPO -p /root/.restic_repo_password init >>$LOGFILE 2>&1
+restic -r $BACKUP_REPO -p /root/.restic_repo_password cat config >/dev/null 2>&1 || restic -r $BACKUP_REPO -p /root/.restic_repo_password init >>$LOGFILE
 
 MYSQLDUMP=/usr/bin/mysqldump
 MYSQL=/usr/bin/mysql
@@ -26,8 +28,10 @@ do
     [[ "$dbase" =~ .*_schema ]] && continue
     if [ "$dbase" == "mysql" ]
     then
-	$MYSQLDUMP --opt --events --add-drop-database $dbase | restic -r $BACKUP_REPO -p /root/.restic_repo_password backup --stdin --stdin-filename ${dbase}.sql >>$LOGFILE 2>&1
+	$MYSQLDUMP --opt --events --add-drop-database $dbase | restic -r $BACKUP_REPO -p /root/.restic_repo_password backup --stdin --stdin-filename ${dbase}.sql >>$LOGFILE
     else
-        $MYSQLDUMP --opt --add-drop-database $dbase | restic -r $BACKUP_REPO -p /root/.restic_repo_password backup --stdin-filename ${dbase}.sql --stdin >>$LOGFILE 2>&1
+        $MYSQLDUMP --opt --add-drop-database $dbase | restic -r $BACKUP_REPO -p /root/.restic_repo_password backup --stdin-filename ${dbase}.sql --stdin >>$LOGFILE
     fi
 done
+echo "*** Fin le :" $(date) " pour " $(uname -n) >>${LOGFILE}
+echo >>${LOGFILE}
