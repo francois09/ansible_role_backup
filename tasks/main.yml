@@ -71,6 +71,17 @@
     - backup__install
     - backup__configure
 
+- name: Create backup_cleaner file
+  template:
+    src: "backup_cleaner{% if backup__restic %}_restic{% endif %}"
+    dest: "/usr/local/bin/backup_cleaner"
+    mode: 0770
+    owner: root
+    group: root
+  when:
+    - backup__install
+    - backup__configure
+
 - name: Create backup_mysql cron
   cron:
     name: "Backup MySQL"

@@ -15,13 +15,3 @@
   when:
     - backup__install
 
-- name: Create backup_cleaner file
-  template:
-    src: backup_cleaner
-    dest: "/usr/local/bin/backup_cleaner"
-    mode: 0770
-    owner: root
-    group: root
-  when:
-    - backup__install
-    - backup__configure
