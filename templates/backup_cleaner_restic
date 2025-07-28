@@ -1,0 +1,64 @@
+#!/bin/bash
+# Nettoyage des backups
+#
+
+# Quelques valeurs par défaut
+# La syntaxe de l'âge est: "<subdir>:<age>[;<subdir>:<age>]*"
+# où subdir est la partie du nom du fichier qui en décrit le type (mysql, etc, datas, users, ..)
+# et age = nD | nW | nM | nY
+# Pour les jours, les semaines, les mois et les années
+
+# Quelques valeurs par défaut
+BACKUP_DIR="{{ backup__conf.local_dir }}"
+BACKUP_AGE="*:4W"
+BACKUP_CONF_FILE="{{ backup__conf.local_conf }}"
+
+# Si un fichier de paramètres existe, alors on le source
+[ -e "$BACKUP_CONF_FILE" ] && . "$BACKUP_CONF_FILE"
+
+# On va faire un tableau des durée de rétention
+declare -A AGE_GROUP
+for group in $(echo $BACKUP_AGE|sed -e 's/\;/ /g')
+do
+  # On extrait le répertoire et l'âge
+  AGE=${group/*:/}
+  REP=${group/:*/}
+  [ "$REP" == '*' ] && REP='ALL'
+  AGE_GROUP["$REP"]=$AGE
+done
+
+# Parcourir les classiques
+for r in mysql users zones
+do
+    AGE=${AGE_GROUP["$r"]}
+    [ -z "$AGE" ] && AGE=${AGE_GROUP['ALL']}
+    if [ $r == "zones" ]
+    then
+	# On scanne maintenant les zones
+	for z in ${BACKUP_ZONES}
+	do
+	    AGE=${AGE_GROUP[$z]}
+	    [ -z "$AGE" ] && AGE=${AGE_GROUP['zones']}
+	    [ -z "$AGE" ] && AGE=${AGE_GROUP['ALL']}
+	    real_z=$(echo $z|sed -e 's/\///;s/\//-/g')
+	    BACKUP_REPO="sftp:{{ backup__conf.restic_host }}:/home/$(hostname -s).$(hostname -d)/zones/$real_z" 
+	    restic -r $BACKUP_REPO -p /root/.restic_repo_password cat config >/dev/null 2>&1 || restic -r $BACKUP_REPO -p /root/.restic_repo_password forget --keep-within $AGE --prune >>$LOGFILE
+	    rc=$?
+	    if [ $rc -gt 0 ]
+	    then
+		echo "Errors during $z zone backup repository cleaning. Check ${LOGFILE} on " $(uname -n)
+		tail ${LOGFILE}
+	    fi
+	    
+	done
+    else
+      BACKUP_REPO="sftp:{{ backup__conf.restic_host }}:/home/$(hostname -s).$(hostname -d)/$r" 
+      restic -r $BACKUP_REPO -p /root/.restic_repo_password cat config >/dev/null 2>&1 || restic -r $BACKUP_REPO -p /root/.restic_repo_password forget --keep-within $AGE --prune >>$LOGFILE
+      rc=$?
+      if [ $rc -gt 0 ]
+      then
+	  echo "Errors during $r backup repository cleaning. Check ${LOGFILE} on " $(uname -n)
+	  tail ${LOGFILE}
+      fi
+    fi
+done

@@ -14,23 +14,64 @@ LOGFILE={{ backup__conf.logfile }}
 
 echo "*** Demarrage le :" $(date) " pour " $(uname -n) >>${LOGFILE}
 
+if [ $# -lt 2 ]
+then
+    tries=5
+else
+    tries=$2
+fi
+
 # Check/create repository
 restic -r $BACKUP_REPO -p /root/.restic_repo_password cat config >/dev/null 2>&1 || restic -r $BACKUP_REPO -p /root/.restic_repo_password init >>$LOGFILE
+rc=$?
+if [ $rc != 0 ]
+then
+    if [ $tries -gt 0 ]
+    then
+	echo $0 ALL $(($tries - 1)) | at now + 10 min >>${LOGFILE} 2>&1
+    else
+	echo "Errors during mysql backup repository check/creation. Check ${LOGFILE} on " $(uname -n)
+	tail ${LOGFILE}
+	exit $rc
+    fi
+    exit
+fi
+
 
 MYSQLDUMP=/usr/bin/mysqldump
 MYSQL=/usr/bin/mysql
 
-DATABASES=$($MYSQL --user=root -r -B -e "show databases"|tail -n +2)
+if [ $# -lt 1 -o "$1" == "ALL" ]
+then
+    DATABASES=$($MYSQL --user=root -r -B -e "show databases"|tail -n +2)
+else
+    DATABASES=$1
+fi
 
 for dbase in $DATABASES
 do
     [[ "$dbase" =~ .*_schema ]] && continue
     if [ "$dbase" == "mysql" ]
     then
-	$MYSQLDUMP --opt --events --add-drop-database $dbase | restic -r $BACKUP_REPO -p /root/.restic_repo_password backup --stdin --stdin-filename ${dbase}.sql >>$LOGFILE
+	MYSQLDUMP_CMD="$MYSQLDUMP --opt --events --add-drop-database $dbase"
     else
-        $MYSQLDUMP --opt --add-drop-database $dbase | restic -r $BACKUP_REPO -p /root/.restic_repo_password backup --stdin-filename ${dbase}.sql --stdin >>$LOGFILE
+	MYSQLDUMP_CMD="$MYSQLDUMP --opt --add-drop-database $dbase"
+    fi
+
+    $MYSQLDUMP_CMD | restic -r $BACKUP_REPO -p /root/.restic_repo_password backup --stdin-filename ${dbase}.sql --stdin >>$LOGFILE
+    rc=$?
+    if [ $rc != 0 ]
+    then
+	if [ $tries -gt 0 ]
+	then
+	    echo $0 "$dbase" $(($tries - 1)) | at now + 10 min >>${LOGFILE} 2>&1
+	else
+	    echo "Errors during mysql backup for $dbase. Check ${LOGFILE} on " $(uname -n)
+	    tail ${LOGFILE}
+	    exit $rc
+	fi
     fi
 done
+
 echo "*** Fin le :" $(date) " pour " $(uname -n) >>${LOGFILE}
 echo >>${LOGFILE}

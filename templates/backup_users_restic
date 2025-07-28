@@ -13,10 +13,35 @@ LOGFILE={{ backup__conf.logfile }}
 
 echo "*** Demarrage le :" $(date) " pour " $(uname -n) >>${LOGFILE}
 
+if [ $# -lt 2 ]
+then
+    tries=5
+else
+    tries=$2
+fi
+
 # Check/create repository
 restic -r $BACKUP_REPO -p /root/.restic_repo_password cat config >/dev/null 2>&1 || restic -r $BACKUP_REPO -p /root/.restic_repo_password init >>$LOGFILE
+rc=$?
+if [ $rc != 0 ]
+then
+    if [ $tries -gt 0 ]
+    then
+	echo $0 ALL $(($tries - 1)) | at now + 10 min >>${LOGFILE} 2>&1
+    else
+	echo "Errors during users backup repository check/creation. Check ${LOGFILE} on " $(uname -n)
+	tail ${LOGFILE}
+	exit $rc
+    fi
+    exit
+fi
 
-DIR_LIST=$(grep -v 'pvs-backup' /etc/passwd|awk -F':' '{if (($3 >= 1000) && ($3 < 65534)) print $1":"$6;}')
+if [ $# -lt 1 -o "$1" == "ALL" ]
+then
+    DIR_LIST=$(grep -v 'pvs-backup' /etc/passwd|awk -F':' '{if (($3 >= 1000) && ($3 < 65534)) print $1":"$6;}')
+else
+    DIR_LIST=$1
+fi
 
 for g in ${DIR_LIST}
 do
@@ -28,7 +53,20 @@ do
 
   # Puis sauvegarder ça avec restic
   restic -r $BACKUP_REPO -p /root/.restic_repo_password backup {% for xcl in backup__conf.exclude|default([]) %}--exclude="{{ xcl }}" {% endfor %} --one-file-system $z >>$LOGFILE
-
+  rc=$?
+  if [ $rc != 0 ]
+  then
+      if [ $tries -gt 0 ]
+      then
+	  echo $0 "$g" $(($tries - 1)) | at now + 10 min >>${LOGFILE} 2>&1
+      else
+	  echo "Errors during users backup for $g. Check ${LOGFILE} on " $(uname -n)
+	  tail ${LOGFILE}
+	  exit $rc
+      fi
+      exit
+  fi
 done
+
 echo "*** Fin le :" $(date) " pour " $(uname -n) >>${LOGFILE}
 echo >>${LOGFILE}

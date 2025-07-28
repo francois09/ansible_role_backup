@@ -23,6 +23,7 @@ backup__retentions:
   - "*:2W"
   - "mysql:2W"
   - "users:2W"
+  - "zones:2W"
 
 backup__cleaner_hour: "8"
 backup__cleaner_min: "0"
