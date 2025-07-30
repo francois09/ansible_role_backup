@@ -34,6 +34,7 @@ for r in mysql users zones
 do
     AGE=${AGE_GROUP["$r"]}
     [ -z "$AGE" ] && AGE=${AGE_GROUP['ALL']}
+    AGE=$(echo $AGE|sed -e 's/D/d/;s/W/w/;s/M/m/;s/Y/y/')
     if [ $r == "zones" ]
     then
 	# On scanne maintenant les zones
@@ -42,6 +43,7 @@ do
 	    AGE=${AGE_GROUP[$z]}
 	    [ -z "$AGE" ] && AGE=${AGE_GROUP['zones']}
 	    [ -z "$AGE" ] && AGE=${AGE_GROUP['ALL']}
+	    AGE=$(echo $AGE|sed -e 's/D/d/;s/W/w/;s/M/m/;s/Y/y/')
 	    real_z=$(echo $z|sed -e 's/\///;s/\//-/g')
 	    BACKUP_REPO="sftp:{{ backup__conf.restic_host }}:/home/$(hostname -s).$(hostname -d)/zones/$real_z" 
 	    restic -r $BACKUP_REPO -p /root/.restic_repo_password forget --keep-within $AGE --prune >>$LOGFILE
