@@ -28,3 +28,14 @@
   when:
     - backup__install
     - backup__configure
+
+# - name: Create restic ssh identity file
+#   when:
+#     - backup__install
+#     - backup__configure
+#     - backup__ssh_id
+
+# -name: Copy ssh id file(s) into local file
+
+# -name: Install ssh id  into storage box
+#    Currently done manually with : cat ~/.ssh/{{ backup__ssh_id }}.pub | ssh -p23 u474134@u474134.your-storagebox.de install-ssh-key

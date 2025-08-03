@@ -1,4 +1,4 @@
 Host {{ backup__conf.restic_host }}
   User {{ backup__conf.restic_user }}
   Port {{ backup__conf.restic_port }}
-  IdentityFile {{ backup__conf.restic_cert }}
+  IdentityFile {{ backup__conf.ssh_id }}
