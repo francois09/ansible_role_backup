@@ -36,7 +36,8 @@ Role Variables
 * `backup__restic_host` sFTP Hostname
 * `backup__restic_user` sFTP User
 * `backup__restic_port` sFTP port
-* `backup__restic_cert` ssh cert file
+* `backup__ssh_id` ssh id file (Default to id_rsa)
+* `backup__ssh_id_type` ssh id type (Default to rsa)
 * `backup__file_cypher_pass` In classic mode, gpg key for cyphering files. In restic mode, repository password
 
 * `backup__mirror_hour`, `backup__mirror_min` for mirror cron time

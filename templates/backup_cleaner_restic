@@ -30,7 +30,7 @@ do
 done
 
 # Parcourir les classiques
-for r in mysql users zones
+for r in {% if (backup__mysql|default(False)) %}mysql {% endif %}users zones
 do
     AGE=${AGE_GROUP["$r"]}
     [ -z "$AGE" ] && AGE=${AGE_GROUP['ALL']}
