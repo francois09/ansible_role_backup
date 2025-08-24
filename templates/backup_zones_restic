@@ -22,7 +22,7 @@ fi
 
 if [ $# -ge 1 ]
 then
-    BACKUP_ZONES=$2
+    BACKUP_ZONES=$1
 fi
 
 for z in ${BACKUP_ZONES}
