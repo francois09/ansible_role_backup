@@ -29,13 +29,53 @@
     - backup__install
     - backup__configure
 
-# - name: Create restic ssh identity file
-#   when:
-#     - backup__install
-#     - backup__configure
-#     - backup__ssh_id
+- name: Check ssh key on host
+  stat:
+    path: "{{ backup__ssh_id }}"
+  register: ssh_key_file
+  check_mode: yes
+  when:
+    - backup__install
+    - backup__configure
+    - backup__ssh_id
 
-# -name: Copy ssh id file(s) into local file
+- name: Generate SSH keypair
+  shell:
+    cmd: "ssh-keygen -t {{ backup__ssh_id_type }} -f {{ backup__ssh_id }} -P ''"
+  register: ssh_key_created
+  when:
+    - not ssh_key_file.stat.exists
+    - backup__install
+    - backup__configure
+    - backup__ssh_id
 
-# -name: Install ssh id  into storage box
-#    Currently done manually with : cat ~/.ssh/{{ backup__ssh_id }}.pub | ssh -p23 u474134@u474134.your-storagebox.de install-ssh-key
+- name: Copy ssh id file into local file
+  fetch:
+    src: "{{ backup__ssh_id }}.pub"
+    dest: "~/.ssh/"
+    flat: true
+  when:
+    - backup__install
+    - backup__configure
+    - backup__ssh_id
+    - ssh_key_created is changed
+
+- name: Install ssh id  into storage box
+  delegate_to: localhost
+  become: no
+  shell:
+    cmd: "cat ~/.ssh/{{ backup__ssh_id_name }}.pub | ssh -p23 {{ backup__restic_user }}@{{ backup__restic_host }} install-ssh-key"
+  when:
+    - backup__install
+    - backup__configure
+    - backup__ssh_id
+    - ssh_key_created is changed
+
+- name: Add host key to known hosts
+  shell:
+    cmd: "ssh-keyscan -p {{ backup__restic_port }} -t {{ backup__ssh_id_type }} -H {{ backup__restic_host }} >> /root/.ssh/known_hosts"
+  when:
+    - backup__install
+    - backup__configure
+    - backup__ssh_id
+    - ssh_key_created is changed
