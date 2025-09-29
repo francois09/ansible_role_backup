@@ -42,7 +42,7 @@ Role Variables
 
 * `backup__mirror_hour`, `backup__mirror_min` for mirror cron time
 * `backup__cleaner_hour`, `backup__cleaner_min` for cleaner cron time
-
+* `backup__output_prom` directory where prometheus `.prom` files should be written
 
 Dependencies
 ------------

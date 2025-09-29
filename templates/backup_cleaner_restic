@@ -52,6 +52,12 @@ do
 	    then
 		echo "Errors during $z zone backup repository cleaning. Check ${LOGFILE} on " $(uname -n)
 		tail ${LOGFILE}
+{% if backup__output_prom|default(False) %}
+                echo "backup_run_status{step=\"cleaner\",type=\"zone\",zonename=\"$real_z\"} $rc" >> {{ backup__output_prom }}/backup_cleaner.prom.new
+            else
+                echo "backup_run_status{step=\"cleaner\",type=\"zone\",zonename=\"$real_z\"} $rc" >> {{ backup__output_prom }}/backup_cleaner.prom.new
+		echo "backup_last_run{step=\"cleaner\",type=\"zone\",zonename=\"$real_z\"} $(date +%s)" >> {{ backup__output_prom }}/backup_cleaner.prom.new
+{% endif %}
 	    fi
 	    
 	done
@@ -63,6 +69,19 @@ do
       then
 	  echo "Errors during $r backup repository cleaning. Check ${LOGFILE} on " $(uname -n)
 	  tail ${LOGFILE}
+{% if backup__output_prom|default(False) %}
+          echo "backup_run_status{step=\"cleaner\",type=\"$r\",zonename=\"\"} $rc" >> {{ backup__output_prom }}/backup_cleaner.prom.new
+      else
+          echo "backup_run_status{step=\"cleaner\",type=\"$r\",zonename=\"\"} $rc" >> {{ backup__output_prom }}/backup_cleaner.prom.new
+	  echo "backup_last_run{step=\"cleaner\",type=\"$r\",zonename=\"\"} $(date +%s)" >> {{ backup__output_prom }}/backup_cleaner.prom.new
+{% endif %}
       fi
     fi
 done
+{% if backup__output_prom|default(False) %}
+
+# Switch prom file
+rm -f {{ backup__output_prom }}/backup_cleaner.prom.old 2>/dev/null
+mv {{ backup__output_prom }}/backup_cleaner.prom {{ backup__output_prom }}/backup_cleaner.prom.old 2>/dev/null
+mv {{ backup__output_prom }}/backup_cleaner.prom.new {{ backup__output_prom }}/backup_cleaner.prom
+{% endif %}

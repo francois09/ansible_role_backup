@@ -11,6 +11,16 @@ BACKUP_CONF_FILE="{{ backup__conf.local_conf }}"
 
 LOGFILE={{ backup__conf.logfile }}
 
+{% if backup__output_prom|default(False) %}
+
+# Switch prom file
+switch_prom_file() {
+    rm -f {{ backup__output_prom }}/backup_users.prom.old 2>/dev/null
+    mv {{ backup__output_prom }}/backup_users.prom {{ backup__output_prom }}/backup_users.prom.old 2>/dev/null
+    mv {{ backup__output_prom }}/backup_users.prom.new {{ backup__output_prom }}/backup_users.prom
+}
+{% endif %}
+
 echo "*** Demarrage le :" $(date) " pour " $(uname -n) >>${LOGFILE}
 
 if [ $# -lt 2 ]
@@ -31,9 +41,21 @@ then
     else
 	echo "Errors during users backup repository check/creation. Check ${LOGFILE} on " $(uname -n)
 	tail ${LOGFILE}
+{% if backup__output_prom|default(False) %}
+        echo "backup_run_status{step=\"users\",type=\"setup\",zonename=\"\"} $rc" >> {{ backup__output_prom }}/backup_users.prom.new
+        switch_prom_file
+{% endif %}
 	exit $rc
     fi
-    exit
+{% if backup__output_prom|default(False) %}
+    echo "backup_run_status{step=\"users\",type=\"setup\",zonename=\"\"} $rc" >> {{ backup__output_prom }}/backup_users.prom.new
+    switch_prom_file
+{% endif %}
+    exit $rc
+{% if backup__output_prom|default(False) %}
+ else
+    echo "backup_run_status{step=\"users\",type=\"setup\",zonename=\"\"} 0" >> {{ backup__output_prom }}/backup_users.prom.new
+{% endif %}
 fi
 
 if [ $# -lt 1 -o "$1" == "ALL" ]
@@ -62,11 +84,28 @@ do
       else
 	  echo "Errors during users backup for $g. Check ${LOGFILE} on " $(uname -n)
 	  tail ${LOGFILE}
+{% if backup__output_prom|default(False) %}
+          echo "backup_run_status{step=\"users\",type=\"account\",zonename=\"$n\"} $rc" >> {{ backup__output_prom }}/backup_users.prom.new
+          switch_prom_file
+{% endif %}
 	  exit $rc
       fi
-      exit
+{% if backup__output_prom|default(False) %}
+      echo "backup_run_status{step=\"users\",type=\"account\",zonename=\"$n\"} $rc" >> {{ backup__output_prom }}/backup_users.prom.new
+      switch_prom_file
+{% endif %}
+      exit $rc
+{% if backup__output_prom|default(False) %}
+    else
+        echo "backup_run_status{step=\"users\",type=\"account\",zonename=\"$n\"} 0" >> {{ backup__output_prom }}/backup_users.prom.new
+{% endif %}
   fi
 done
 
 echo "*** Fin le :" $(date) " pour " $(uname -n) >>${LOGFILE}
 echo >>${LOGFILE}
+{% if backup__output_prom|default(False) %}
+
+# Switch prom file
+switch_prom_file
+{% endif %}
