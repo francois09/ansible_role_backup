@@ -100,6 +100,7 @@ do
         echo "backup_run_status{step=\"mysql\",type=\"base\",zonename=\"$dbase\"} $rc" >> {{ backup__output_prom }}/backup_mysql.prom.new
     else
         echo "backup_run_status{step=\"mysql\",type=\"base\",zonename=\"$dbase\"} 0" >> {{ backup__output_prom }}/backup_mysql.prom.new
+        echo "backup_last_run{step=\"mysql\",type=\"base\",zonename=\"$dbase\"} $(date -u +%s)" >> {{ backup__output_prom }}/backup_mysql.prom.new
 {% endif %}
     fi
 done

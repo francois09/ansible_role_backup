@@ -92,6 +92,7 @@ do
 {% if backup__output_prom|default(False) %}
   else
         echo "backup_run_status{step=\"zones\",type=\"backup\",zonename=\"$z\"} 0" >> {{ backup__output_prom }}/backup_zones.prom.new
+	echo "backup_last_run{step=\"zones\",type=\"backup\",zonename=\"$z\"} $(date -u +%s)" >> {{ backup__output_prom }}/backup_zones.prom.new
 {% endif %}
   fi
 
