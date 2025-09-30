@@ -56,7 +56,7 @@ do
                 echo "backup_run_status{step=\"cleaner\",type=\"zone\",zonename=\"$real_z\"} $rc" >> {{ backup__output_prom }}/backup_cleaner.prom.new
             else
                 echo "backup_run_status{step=\"cleaner\",type=\"zone\",zonename=\"$real_z\"} $rc" >> {{ backup__output_prom }}/backup_cleaner.prom.new
-		echo "backup_last_run{step=\"cleaner\",type=\"zone\",zonename=\"$real_z\"} $(date +%s)" >> {{ backup__output_prom }}/backup_cleaner.prom.new
+		echo "backup_last_run{step=\"cleaner\",type=\"zone\",zonename=\"$real_z\"} $(date -u +%s)" >> {{ backup__output_prom }}/backup_cleaner.prom.new
 {% endif %}
 	    fi
 	    
@@ -73,7 +73,7 @@ do
           echo "backup_run_status{step=\"cleaner\",type=\"$r\",zonename=\"\"} $rc" >> {{ backup__output_prom }}/backup_cleaner.prom.new
       else
           echo "backup_run_status{step=\"cleaner\",type=\"$r\",zonename=\"\"} $rc" >> {{ backup__output_prom }}/backup_cleaner.prom.new
-	  echo "backup_last_run{step=\"cleaner\",type=\"$r\",zonename=\"\"} $(date +%s)" >> {{ backup__output_prom }}/backup_cleaner.prom.new
+	  echo "backup_last_run{step=\"cleaner\",type=\"$r\",zonename=\"\"} $(date -u +%s)" >> {{ backup__output_prom }}/backup_cleaner.prom.new
 {% endif %}
       fi
     fi
