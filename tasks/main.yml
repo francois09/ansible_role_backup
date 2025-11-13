@@ -30,7 +30,7 @@
   template:
     src: logfile
     dest: "/etc/logrotate.d/backup"
-    mode: 0664
+    mode: 0644
     owner: root
     group: root
   when:
