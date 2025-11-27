@@ -37,7 +37,7 @@
   when:
     - backup__install
     - backup__configure
-    - backup__ssh_id
+    - backup__ssh_id is defined
 
 - name: Generate SSH keypair
   shell:
@@ -47,7 +47,7 @@
     - not ssh_key_file.stat.exists
     - backup__install
     - backup__configure
-    - backup__ssh_id
+    - backup__ssh_id is defined
 
 - name: Copy ssh id file into local file
   fetch:
@@ -57,7 +57,7 @@
   when:
     - backup__install
     - backup__configure
-    - backup__ssh_id
+    - backup__ssh_id is defined
     - ssh_key_created is changed
 
 - name: Install ssh id  into storage box
@@ -68,7 +68,7 @@
   when:
     - backup__install
     - backup__configure
-    - backup__ssh_id
+    - backup__ssh_id is defined
     - ssh_key_created is changed
 
 - name: Add host key to known hosts
@@ -77,5 +77,5 @@
   when:
     - backup__install
     - backup__configure
-    - backup__ssh_id
+    - backup__ssh_id is defined
     - ssh_key_created is changed
