@@ -53,6 +53,8 @@ backup__localdir: "/var/backup"
 backup__localconf: "/etc/default/backup"
 backup__logfile: "/var/log/backup.log"
 
+backup__output_prom: "/var/lib/prometheus/node-exporter"
+
 backup__conf:
   logfile: "{{ backup__logfile }}"
   local_dir: "{{ backup__localdir }}"
