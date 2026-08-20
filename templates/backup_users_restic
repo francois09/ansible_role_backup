@@ -21,7 +21,7 @@ switch_prom_file() {
 }
 {% endif %}
 
-echo "*** Demarrage le :" $(date) " pour " $(uname -n) >>${LOGFILE}
+echo "*** Demarrage de $0 le :" $(date) " pour " $(uname -n) >>${LOGFILE}
 
 if [ $# -lt 2 ]
 then
