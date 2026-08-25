@@ -16,9 +16,9 @@ BACKUP_CONF_FILE="{{ backup__conf.local_conf }}"
 # Si un fichier de paramètres existe, alors on le source
 [ -e "$BACKUP_CONF_FILE" ] && . "$BACKUP_CONF_FILE"
 
-echo "*** Demarrage de $0 le :" $(date) " pour " $(uname -n) >>${LOGFILE}
-
 LOGFILE={{ backup__conf.logfile }}
+
+echo "*** Demarrage de $0 le :" $(date) " pour " $(uname -n) >>${LOGFILE}
 
 # On va faire un tableau des durée de rétention
 declare -A AGE_GROUP
